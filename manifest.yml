@@ -1,0 +1,34 @@
+modules:
+  jira:issuePanel:
+    - key: war-room-incident-panel
+      resource: main
+      render: native
+      title: Cyber War Room
+      icon: https://developer.atlassian.com/platform/forge/images/icons/issue-panel-icon.svg
+  function:
+    - key: resolver
+      handler: index.handler
+    - key: create-incident-tasks
+      handler: taskOrchestration.createIncidentTasks
+    - key: incident-trigger
+      handler: triggers.onIncidentCreated
+  trigger:
+    - key: incident-created-trigger
+      function: incident-trigger
+      events:
+        - avi:jira:created:issue
+permissions:
+  scopes:
+    - read:jira-work
+    - write:jira-work
+    - read:jira-user
+    - storage:app
+resources:
+  - key: main
+    path: src/frontend/index.jsx
+app:
+  runtime:
+    name: nodejs24.x
+    memoryMB: 512
+    architecture: arm64
+  id: ari:cloud:ecosystem::app/7c11e1e1-f31c-4809-88b9-99279bff2490
