@@ -5,6 +5,34 @@ modules:
       render: native
       title: 🏁 Paddock Shield - Race Control
       icon: https://developer.atlassian.com/platform/forge/images/icons/issue-panel-icon.svg
+  rovo:agent:
+    - key: race-engineer-agent
+      name: Race Engineer
+      description: AI co-pilot for F1-speed incident response. Ask about IP leaks, telemetry breaches, and security incidents.
+      prompt: src/raceEngineerPrompt.md
+      function: race-engineer-handler
+      conversationStarters:
+        - "Show me all IP leak incidents this week"
+        - "Who accessed the Front Wing CAD file?"
+        - "What's our current pit stop time (MTTR)?"
+        - "Generate a race classification for incident PDKS-42"
+      actions:
+        - key: get-incident-telemetry
+        - key: analyze-ip-leak
+        - key: check-access-logs
+  action:
+    - key: get-incident-telemetry
+      name: Get Incident Telemetry
+      description: Retrieves detailed telemetry data (access logs, timeline, anomalies) for a specific security incident
+      function: get-telemetry-action
+    - key: analyze-ip-leak
+      name: Analyze IP Leak
+      description: Analyzes potential IP leaks to determine severity, scope, and recommended containment actions
+      function: analyze-leak-action
+    - key: check-access-logs
+      name: Check Access Logs
+      description: Searches access logs for specific users, files, or time ranges to identify unauthorized activity
+      function: check-logs-action
   function:
     - key: resolver
       handler: index.handler
@@ -14,6 +42,14 @@ modules:
       handler: agents.executeResponse
     - key: detect-anomalies
       handler: agents.detectAnomalies
+    - key: race-engineer-handler
+      handler: rovoHandlers.raceEngineerHandler
+    - key: get-telemetry-action
+      handler: rovoHandlers.getIncidentTelemetry
+    - key: analyze-leak-action
+      handler: rovoHandlers.analyzeIpLeak
+    - key: check-logs-action
+      handler: rovoHandlers.checkAccessLogs
     - key: incident-trigger
       handler: triggers.onIncidentCreated
   trigger:
