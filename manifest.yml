@@ -1,15 +1,19 @@
 modules:
   jira:issuePanel:
-    - key: war-room-incident-panel
+    - key: paddock-shield-panel
       resource: main
       render: native
-      title: Cyber War Room
+      title: 🏁 Paddock Shield - Race Control
       icon: https://developer.atlassian.com/platform/forge/images/icons/issue-panel-icon.svg
   function:
     - key: resolver
       handler: index.handler
     - key: create-incident-tasks
       handler: taskOrchestration.createIncidentTasks
+    - key: deploy-pit-crew
+      handler: agents.executeResponse
+    - key: detect-anomalies
+      handler: agents.detectAnomalies
     - key: incident-trigger
       handler: triggers.onIncidentCreated
   trigger:

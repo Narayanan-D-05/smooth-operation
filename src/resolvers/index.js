@@ -6,24 +6,24 @@ const resolver = new Resolver();
 // Get incident data including war room status, timeline, and tasks
 resolver.define('getIncidentData', async (req) => {
   const { issueId } = req.payload;
-  
+
   try {
     // Fetch issue details from Jira
     const issueResponse = await api.asApp().requestJira(route`/rest/api/3/issue/${issueId}`);
     const issueData = await issueResponse.json();
-    
+
     // Get war room data from storage
     const warRoomKey = `warroom:${issueId}`;
     const warRoomData = await storage.get(warRoomKey) || {};
-    
+
     // Get timeline from storage
     const timelineKey = `timeline:${issueId}`;
     const timeline = await storage.get(timelineKey) || [];
-    
+
     // Get tasks from storage
     const tasksKey = `tasks:${issueId}`;
     const tasks = await storage.get(tasksKey) || [];
-    
+
     return {
       incident: {
         key: issueData.key,
@@ -47,27 +47,27 @@ resolver.define('getIncidentData', async (req) => {
 // Activate war room for an incident
 resolver.define('activateWarRoom', async (req) => {
   const { issueId } = req.payload;
-  
+
   try {
     const warRoomKey = `warroom:${issueId}`;
     const timelineKey = `timeline:${issueId}`;
-    
+
     // Set war room as active
     await storage.set(warRoomKey, {
       active: true,
       activatedAt: new Date().toISOString(),
       activatedBy: req.context.accountId
     });
-    
+
     // Add initial timeline entry
     const existingTimeline = await storage.get(timelineKey) || [];
     existingTimeline.push({
       timestamp: new Date().toLocaleString(),
-      message: '🚨 War Room Activated - Incident response initiated',
+      message: '🏁 Race Control Activated - Paddock Shield deployed',
       type: 'system'
     });
     await storage.set(timelineKey, existingTimeline);
-    
+
     return { success: true };
   } catch (error) {
     console.error('Error activating war room:', error);
@@ -78,20 +78,20 @@ resolver.define('activateWarRoom', async (req) => {
 // Add timeline entry
 resolver.define('addTimelineEntry', async (req) => {
   const { issueId, message } = req.payload;
-  
+
   try {
     const timelineKey = `timeline:${issueId}`;
     const timeline = await storage.get(timelineKey) || [];
-    
+
     timeline.push({
       timestamp: new Date().toLocaleString(),
       message,
       type: 'manual',
       user: req.context.accountId
     });
-    
+
     await storage.set(timelineKey, timeline);
-    
+
     return { success: true };
   } catch (error) {
     console.error('Error adding timeline entry:', error);
@@ -102,51 +102,51 @@ resolver.define('addTimelineEntry', async (req) => {
 // Orchestrate automated task creation
 resolver.define('orchestrateTasks', async (req) => {
   const { issueId } = req.payload;
-  
+
   try {
     // Fetch parent issue details
     const issueResponse = await api.asApp().requestJira(route`/rest/api/3/issue/${issueId}`);
     const issueData = await issueResponse.json();
     const projectId = issueData.fields.project.id;
-    
-    // Define task templates for incident response
+
+    // Define task templates for F1 IP Protection (Paddock Shield)
     const taskTemplates = [
       {
-        summary: '[Security] Contain and Isolate Threat',
-        description: 'Identify affected systems and isolate them from the network to prevent further spread.',
+        summary: '🚨 [PIT STOP] Contain IP Leak',
+        description: 'Lock down all design file access. Revoke permissions for unauthorized accounts.',
         priority: 'Highest'
       },
       {
-        summary: '[IT Ops] System Isolation and Recovery',
-        description: 'Isolate compromised systems and begin recovery procedures.',
+        summary: '🔍 [MARSHAL] Forensic Analysis',
+        description: 'Analyze access logs to identify breach vector and scope of data exposure.',
         priority: 'Highest'
       },
       {
-        summary: '[Security] Forensic Analysis',
-        description: 'Collect logs, memory dumps, and evidence for forensic analysis.',
+        summary: '⚖️ [STEWARD] FIA Compliance Review',
+        description: 'Review incident against FIA data protection regulations and team policies.',
         priority: 'High'
       },
       {
-        summary: '[Legal] Assess Breach Notification Requirements',
-        description: 'Determine if regulatory breach notification is required (GDPR, CCPA, etc.).',
+        summary: '📊 [RACE ENGINEER] Executive Brief',
+        description: 'Prepare incident summary for Team Principal (executive leadership).',
         priority: 'High'
       },
       {
-        summary: '[Management] Stakeholder Communication',
-        description: 'Prepare incident summary for executive leadership and stakeholders.',
-        priority: 'Medium'
-      },
-      {
-        summary: '[IT Ops] Patch and Remediate Vulnerabilities',
+        summary: '🔧 [PIT CREW] Patch and Remediate',
         description: 'Apply security patches and implement remediation measures.',
         priority: 'High'
+      },
+      {
+        summary: '📝 [LEGAL] Breach Notification Assessment',
+        description: 'Determine if regulatory breach notification is required (GDPR, CCPA, etc.).',
+        priority: 'Medium'
       }
     ];
-    
+
     const createdTasks = [];
     const timelineKey = `timeline:${issueId}`;
     const timeline = await storage.get(timelineKey) || [];
-    
+
     // Create tasks in Jira
     for (const template of taskTemplates) {
       const taskPayload = {
@@ -173,7 +173,7 @@ resolver.define('orchestrateTasks', async (req) => {
           parent: { key: issueData.key }
         }
       };
-      
+
       try {
         const createResponse = await api.asApp().requestJira(route`/rest/api/3/issue`, {
           method: 'POST',
@@ -182,7 +182,7 @@ resolver.define('orchestrateTasks', async (req) => {
           },
           body: JSON.stringify(taskPayload)
         });
-        
+
         const createdTask = await createResponse.json();
         createdTasks.push({
           key: createdTask.key,
@@ -190,11 +190,11 @@ resolver.define('orchestrateTasks', async (req) => {
           status: 'To Do',
           assignee: null
         });
-        
-        // Add timeline entry
+
+        // Add timeline entry with F1 terminology
         timeline.push({
           timestamp: new Date().toLocaleString(),
-          message: `✅ Created task: ${template.summary} (${createdTask.key})`,
+          message: `✅ Pit Crew deployed: ${template.summary} (${createdTask.key})`,
           type: 'system'
         });
       } catch (taskError) {
@@ -206,12 +206,12 @@ resolver.define('orchestrateTasks', async (req) => {
         });
       }
     }
-    
+
     // Save tasks and timeline
     const tasksKey = `tasks:${issueId}`;
     await storage.set(tasksKey, createdTasks);
     await storage.set(timelineKey, timeline);
-    
+
     return { success: true, tasks: createdTasks };
   } catch (error) {
     console.error('Error orchestrating tasks:', error);
