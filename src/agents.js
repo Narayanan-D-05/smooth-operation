@@ -7,8 +7,8 @@ import api, { route, storage } from '@forge/api';
  */
 
 // Marshal Agent: Anomaly Detection
-export async function detectAnomalies(event) {
-    const { issueId } = event;
+export async function detectAnomalies(req) {
+    const { issueId } = req.payload || {};
 
     console.log(`🚨 Marshal Agent scanning for anomalies in incident: ${issueId}`);
 
@@ -19,7 +19,8 @@ export async function detectAnomalies(event) {
         const anomalies = [];
 
         // Check for IP Protection threats (F1-specific)
-        const description = issueData.fields.description?.content?.[0]?.content?.[0]?.text || '';
+        const descriptionNode = issueData.fields.description?.content?.[0]?.content?.[0];
+        const description = (descriptionNode?.type === 'text' ? descriptionNode.text : '') || '';
         const summary = issueData.fields.summary || '';
 
         // Detect CAD file leak patterns
@@ -46,10 +47,14 @@ export async function detectAnomalies(event) {
             });
         }
 
-        // Store anomalies
+        // Store anomalies and check compliance
         if (anomalies.length > 0) {
             await storage.set(`anomalies:${issueId}`, anomalies);
             console.log(`Marshal Agent detected ${anomalies.length} anomalies`);
+
+            // Trigger Steward Agent for compliance review
+            const violations = await checkCompliance(issueId, anomalies);
+            console.log(`Compliance check complete: ${violations.length} violations found`);
         }
 
         return anomalies;
@@ -97,8 +102,8 @@ export async function checkCompliance(issueId, anomalies) {
 }
 
 // Pit Crew Agent: Rapid Response Execution
-export async function executeResponse(event) {
-    const { issueId } = event;
+export async function executeResponse(req) {
+    const { issueId } = req.payload || {};
 
     console.log(`🔧 Pit Crew deploying for incident: ${issueId}`);
 

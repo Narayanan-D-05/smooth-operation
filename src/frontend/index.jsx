@@ -169,26 +169,26 @@ const App = () => {
   const [warRoomActive, setWarRoomActive] = useState(false);
 
   useEffect(() => {
+    async function loadIncidentData() {
+      setIsLoading(true);
+      try {
+        const data = await invoke('getIncidentData', {
+          issueId: context?.platformContext?.issueId
+        });
+        setIncident(data.incident);
+        setTimeline(data.timeline || []);
+        setTasks(data.tasks || []);
+        setWarRoomActive(data.warRoomActive);
+      } catch (error) {
+        console.error('Error loading incident data:', error);
+      }
+      setIsLoading(false);
+    }
+
     if (context) {
       loadIncidentData();
     }
   }, [context]);
-
-  const loadIncidentData = async () => {
-    setIsLoading(true);
-    try {
-      const data = await invoke('getIncidentData', {
-        issueId: context?.platformContext?.issueId
-      });
-      setIncident(data.incident);
-      setTimeline(data.timeline || []);
-      setTasks(data.tasks || []);
-      setWarRoomActive(data.warRoomActive);
-    } catch (error) {
-      console.error('Error loading incident data:', error);
-    }
-    setIsLoading(false);
-  };
 
   const activateWarRoom = async () => {
     setIsLoading(true);
@@ -196,7 +196,14 @@ const App = () => {
       await invoke('activateWarRoom', {
         issueId: context?.platformContext?.issueId
       });
-      await loadIncidentData();
+      // Reload incident data
+      const data = await invoke('getIncidentData', {
+        issueId: context?.platformContext?.issueId
+      });
+      setIncident(data.incident);
+      setTimeline(data.timeline || []);
+      setTasks(data.tasks || []);
+      setWarRoomActive(data.warRoomActive);
     } catch (error) {
       console.error('Error activating war room:', error);
     }
@@ -209,7 +216,14 @@ const App = () => {
       await invoke('orchestrateTasks', {
         issueId: context?.platformContext?.issueId
       });
-      await loadIncidentData();
+      // Reload incident data
+      const data = await invoke('getIncidentData', {
+        issueId: context?.platformContext?.issueId
+      });
+      setIncident(data.incident);
+      setTimeline(data.timeline || []);
+      setTasks(data.tasks || []);
+      setWarRoomActive(data.warRoomActive);
     } catch (error) {
       console.error('Error creating tasks:', error);
     }
@@ -222,7 +236,14 @@ const App = () => {
         issueId: context?.platformContext?.issueId,
         message
       });
-      await loadIncidentData();
+      // Reload incident data
+      const data = await invoke('getIncidentData', {
+        issueId: context?.platformContext?.issueId
+      });
+      setIncident(data.incident);
+      setTimeline(data.timeline || []);
+      setTasks(data.tasks || []);
+      setWarRoomActive(data.warRoomActive);
     } catch (error) {
       console.error('Error adding timeline entry:', error);
     }

@@ -25,7 +25,8 @@ resolver.define('raceEngineerHandler', async (req) => {
     try {
         // Check for incident-specific queries
         if (userQuery.toLowerCase().includes('incident') || userQuery.toLowerCase().includes('pdks-')) {
-            const incidentMatch = userQuery.match(/pdks-?\d+/i);
+            // Match any Jira issue key (PROJECT-123 format)
+            const incidentMatch = userQuery.match(/\b[A-Z]{2,10}-\d+\b/i);
             if (incidentMatch) {
                 const incidentKey = incidentMatch[0].toUpperCase();
                 response = await getIncidentSummary(incidentKey);
@@ -132,7 +133,11 @@ resolver.define('analyzeIpLeak', async (req) => {
 
     return {
         findings,
-        overallRisk: findings.some(f => f.severity === 'CRITICAL') ? 'RED FLAG' : 'YELLOW FLAG',
+        overallRisk: findings.length === 0
+            ? 'GREEN FLAG'
+            : findings.some(f => f.severity === 'CRITICAL')
+                ? 'RED FLAG'
+                : 'YELLOW FLAG',
         recommendedAction: findings.length > 0
             ? 'Deploy Pit Crew immediately'
             : 'Continue monitoring'
